@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import axios from 'axios';
-
+import axios from 'axios'
 
 const SearchBar = styled.div`
 height:130px;
@@ -21,44 +20,32 @@ color:darkblue;
 &:hover{
     cursor:pointer;
 }`;
+
 export default class search extends Component {
-    state = {
-        info: '',
-        itemsDetails: []
+   
+    search=()=>{
+        const info=this.keyWords.value
+        console.log(info)
+        this.props.updateState({isFirst:false,isLoading:true})
+        axios.get(`https://api.github.com/search/users?q=${info}`).then(
+            response=>{
+                this.props.updateState({isLoading:false,users:response.data.items})
+            }
+        ).catch((err)=>{
+            this.props.updateState({isLoading:false,error:err.message})
+        })
     }
-    handleUserName = (event) => {
-        return (this.setState({ info: event.target.value }))
-    }
-    getInfo = () => {
-        const { info } = this.state
-        if (info !== '') {
-            axios.get(`https://api.github.com/search/users?q=${info}`).then(
-                res => {
-                    const newArr = res.data.items
-                    let temp={}
-                    const details=[]
-                    newArr.forEach((item)=>{
-                        temp={pic:item.avatar_url,name:item.login}
-                        details.push(temp)
-                    })
-                    this.setState({ itemsDetails: details })
-                    this.props.changeState(this.state.itemsDetails)  
-                }
-            ).catch((err) => {
-                console.log(err)
-            })
-        }
-    }
+
     render() {
-        
         return (
-            <div>
-                <SearchBar>
-                    <h1>Search your name in GitHub</h1>
-                    <SearchInput type="text" onChange={this.handleUserName} />&nbsp;
-                    <SearchButton onClick={this.getInfo}>Submit</SearchButton>
-                </SearchBar>
-            </div>
+            <SearchBar>
+                <h1>Search your name in GitHub</h1>
+                <SearchInput type="text" ref={c=>this.keyWords=c}/> &nbsp;
+                <SearchButton onClick={this.search}>Submit</SearchButton>
+            </SearchBar >
         )
     }
 }
+
+//利用ref来获取了input输入框里面输入的值非常方便
+//再利用this.keywords.value在函数中进行运用非常方便
